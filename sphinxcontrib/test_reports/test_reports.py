@@ -9,7 +9,18 @@ from sphinx.application import Sphinx
 from sphinx.config import Config
 
 # from docutils import nodes
-from sphinx_needs.api import add_dynamic_function, add_extra_option, add_need_type
+from sphinx_needs.api import add_dynamic_function, add_need_type
+
+try:
+    from sphinx_needs.api import add_field as _add_field
+
+    def _register_field(app, name, schema=None):
+        _add_field(name, name, schema=schema)
+except ImportError:
+    from sphinx_needs.api import add_extra_option as _add_extra_option
+
+    def _register_field(app, name, schema=None):
+        _add_extra_option(app, name, **({} if schema is None else {"schema": schema}))
 
 from sphinxcontrib.test_reports.directives.test_case import TestCase, TestCaseDirective
 from sphinxcontrib.test_reports.directives.test_env import EnvReport, EnvReportDirective
@@ -177,44 +188,34 @@ def sphinx_needs_update(app: Sphinx, config: Config) -> None:
     sphinx-needs configuration
     """
 
-    # Check sphinx-needs version to determine if schema is needed
-    try:
-        needs_version = Version(sphinx_needs.__version__)
-        use_schema = needs_version >= Version("6.0.0")
-    except ImportError:
-        # If we can't determine version, assume older version
-        use_schema = False
+    needs_version = Version(sphinx_needs.__version__)
+    use_schema = needs_version >= Version("6.0.0")
 
-    # Extra options
-    # For details read
-    # https://sphinx-needs.readthedocs.io/en/latest/api.html#sphinx_needs.api.configuration.add_extra_option
+    _register_field(app, getattr(config, "tr_file_option", "file"))
+    _register_field(app, "suite")
+    _register_field(app, "case")
+    _register_field(app, "case_name")
+    _register_field(app, "case_parameter")
+    _register_field(app, "classname")
 
-    add_extra_option(app, getattr(config, "tr_file_option", "file"))
-
-    add_extra_option(app, "suite")
-    add_extra_option(app, "case")
-    add_extra_option(app, "case_name")
-    add_extra_option(app, "case_parameter")
-    add_extra_option(app, "classname")
-    # Add schema parameter conditionally based on sphinx-needs version
     if use_schema:
-        add_extra_option(app, "time", schema={"type": "string"})
-        add_extra_option(app, "suites", schema={"type": "integer"})
-        add_extra_option(app, "cases", schema={"type": "integer"})
-        add_extra_option(app, "passed", schema={"type": "integer"})
-        add_extra_option(app, "skipped", schema={"type": "integer"})
-        add_extra_option(app, "failed", schema={"type": "integer"})
-        add_extra_option(app, "errors", schema={"type": "integer"})
-        add_extra_option(app, "result", schema={"type": "string"})
+        _register_field(app, "time", schema={"type": "string"})
+        _register_field(app, "suites", schema={"type": "integer"})
+        _register_field(app, "cases", schema={"type": "integer"})
+        _register_field(app, "passed", schema={"type": "integer"})
+        _register_field(app, "skipped", schema={"type": "integer"})
+        _register_field(app, "failed", schema={"type": "integer"})
+        _register_field(app, "errors", schema={"type": "integer"})
+        _register_field(app, "result", schema={"type": "string"})
     else:
-        add_extra_option(app, "time")
-        add_extra_option(app, "suites")
-        add_extra_option(app, "cases")
-        add_extra_option(app, "passed")
-        add_extra_option(app, "skipped")
-        add_extra_option(app, "failed")
-        add_extra_option(app, "errors")
-        add_extra_option(app, "result")
+        _register_field(app, "time")
+        _register_field(app, "suites")
+        _register_field(app, "cases")
+        _register_field(app, "passed")
+        _register_field(app, "skipped")
+        _register_field(app, "failed")
+        _register_field(app, "errors")
+        _register_field(app, "result")
     # Extra dynamic functions
     # For details about usage read
     # https://sphinx-needs.readthedocs.io/en/latest/api.html#sphinx_needs.api.configuration.add_dynamic_function
