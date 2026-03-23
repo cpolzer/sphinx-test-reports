@@ -32,7 +32,13 @@ sys.path.insert(0, os.path.abspath("../../sphinxcontrib"))
 
 extensions = ["sphinx_needs", "sphinxcontrib.test_reports"]
 
-needs_extra_options = ["priority"]
+import sphinx_needs as _sn
+from packaging.version import Version as _V
+
+if _V(_sn.__version__) >= _V("8.0.0"):
+    needs_fields = {"priority": {"nullable": True}}
+else:
+    needs_extra_options = ["priority"]
 tr_extra_options = ["priority"]
 
 tr_json_mapping = {

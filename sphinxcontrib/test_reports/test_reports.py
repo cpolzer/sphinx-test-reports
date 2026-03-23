@@ -191,14 +191,13 @@ def sphinx_needs_update(app: Sphinx, config: Config) -> None:
     needs_version = Version(sphinx_needs.__version__)
     use_schema = needs_version >= Version("6.0.0")
 
-    _register_field(app, getattr(config, "tr_file_option", "file"))
-    _register_field(app, "suite")
-    _register_field(app, "case")
-    _register_field(app, "case_name")
-    _register_field(app, "case_parameter")
-    _register_field(app, "classname")
-
     if use_schema:
+        _register_field(app, getattr(config, "tr_file_option", "file"), schema={"type": "string"})
+        _register_field(app, "suite", schema={"type": "string"})
+        _register_field(app, "case", schema={"type": "string"})
+        _register_field(app, "case_name", schema={"type": "string"})
+        _register_field(app, "case_parameter", schema={"type": "string"})
+        _register_field(app, "classname", schema={"type": "string"})
         _register_field(app, "time", schema={"type": "string"})
         _register_field(app, "suites", schema={"type": "integer"})
         _register_field(app, "cases", schema={"type": "integer"})
@@ -208,6 +207,12 @@ def sphinx_needs_update(app: Sphinx, config: Config) -> None:
         _register_field(app, "errors", schema={"type": "integer"})
         _register_field(app, "result", schema={"type": "string"})
     else:
+        _register_field(app, getattr(config, "tr_file_option", "file"))
+        _register_field(app, "suite")
+        _register_field(app, "case")
+        _register_field(app, "case_name")
+        _register_field(app, "case_parameter")
+        _register_field(app, "classname")
         _register_field(app, "time")
         _register_field(app, "suites")
         _register_field(app, "cases")

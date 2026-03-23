@@ -69,7 +69,13 @@ language = "en"
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
 exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
-needs_extra_options = ["more_info"]
+import sphinx_needs as _sn
+from packaging.version import Version as _V
+
+if _V(_sn.__version__) >= _V("8.0.0"):
+    needs_fields = {"more_info": {"nullable": True}}
+else:
+    needs_extra_options = ["more_info"]
 tr_extra_options = ["more_info"]
 
 # The name of the Pygments (syntax highlighting) style to use.

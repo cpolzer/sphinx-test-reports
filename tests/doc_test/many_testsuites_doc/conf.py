@@ -37,7 +37,13 @@ tr_case_id_length = 10
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
-needs_extra_options = ["more_info"]
+import sphinx_needs as _sn
+from packaging.version import Version as _V
+
+if _V(_sn.__version__) >= _V("8.0.0"):
+    needs_fields = {"more_info": {"nullable": True}}
+else:
+    needs_extra_options = ["more_info"]
 tr_extra_options = ["more_info"]
 
 # The suffix(es) of source filenames.
