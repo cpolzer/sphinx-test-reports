@@ -192,7 +192,9 @@ def sphinx_needs_update(app: Sphinx, config: Config) -> None:
     use_schema = needs_version >= Version("6.0.0")
 
     if use_schema:
-        _register_field(app, getattr(config, "tr_file_option", "file"), schema={"type": "string"})
+        _register_field(
+            app, getattr(config, "tr_file_option", "file"), schema={"type": "string"}
+        )
         _register_field(app, "suite", schema={"type": "string"})
         _register_field(app, "case", schema={"type": "string"})
         _register_field(app, "case_name", schema={"type": "string"})
