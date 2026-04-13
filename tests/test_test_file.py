@@ -59,3 +59,20 @@ def test_test_file_renders_need_with_counts(test_app):
 
     html = Path(app.outdir, "index.html").read_text()
     assert "TESTFILE_1" in html
+    
+    # Test 1: Verify HTML contains the need with expected structure
+    from bs4 import BeautifulSoup
+    soup = BeautifulSoup(html, 'html.parser')
+    need = soup.find(class_='need', attrs={'data-need-id': 'TESTFILE_1'})
+    assert need is not None
+    
+    # Test 2: Verify data attributes for integer fields exist
+    required_fields = ['suites', 'cases', 'passed', 'skipped', 'failed', 'errors']
+    for field in required_fields:
+        assert f'data-{field}' in need.attrs, f"Missing data-{field} attribute"
+        value = need[f'data-{field}']
+        assert value.isdigit(), f"data-{field} should be numeric, got: {value}"
+    
+    # Test 3: Optional - Verify actual values are reasonable
+    assert int(need['data-suites']) >= 0  # Should be non-negative
+    assert int(need['data-cases']) >= 0   # Should be non-negative
