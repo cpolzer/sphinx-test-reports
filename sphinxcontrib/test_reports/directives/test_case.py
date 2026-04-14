@@ -160,6 +160,39 @@ class TestCaseDirective(TestCommonDirective):
         if case_parameter is None:
             case_parameter = ""
 
+        # Flatten JUnit <properties> into top-level case keys so that
+        # the extra-data loop below picks them up as sphinx-needs fields.
+        # Only propagate properties that are explicitly listed in
+        # tr_extra_options to avoid unknown-kwarg errors from add_need.
+        # Properties do not overwrite core JUnit attributes (name, time, etc.).
+        allowed_extras = set(getattr(self.app.config, "tr_extra_options", []))
+        case_properties = case.get("properties", {})
+        for prop_name, prop_value in case_properties.items():
+            if prop_name in allowed_extras and prop_name not in case:
+                case[prop_name] = prop_value
+
+        # Process tr_property_link_types: map property values to sphinx-needs links
+        tr_property_link_types = getattr(self.app.config, "tr_property_link_types", {})
+        for prop_name, link_field in tr_property_link_types.items():
+            prop_value = case_properties.get(prop_name, "")
+            if prop_value:
+                # Convert comma-separated IDs to semicolon-separated (sphinx-needs link format)
+                link_ids = ";".join(
+                    id_val.strip() for id_val in prop_value.split(",") if id_val.strip()
+                )
+                if link_field == "links":
+                    existing = self.test_links
+                else:
+                    existing = self.extra_options.get(link_field, "")
+                if existing:
+                    merged = existing + ";" + link_ids
+                else:
+                    merged = link_ids
+                if link_field == "links":
+                    self.test_links = merged
+                else:
+                    self.extra_options[link_field] = merged
+
         # Set extra data, which is not part of the Sphinx-Test-Reports default options
         for key, value in case.items():
             if key == "id" and value not in ["", None]:

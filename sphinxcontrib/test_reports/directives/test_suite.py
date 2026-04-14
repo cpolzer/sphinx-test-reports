@@ -73,6 +73,42 @@ class TestSuiteDirective(TestCommonDirective):
         errors = suite["errors"]
         failed = suite["failures"]
 
+        # Flatten JUnit <properties> into extra_options so that
+        # suite-level properties are surfaced as sphinx-needs fields.
+        # Only propagate properties that are explicitly listed in
+        # tr_extra_options to avoid unknown-kwarg errors from add_need.
+        allowed_extras = set(getattr(self.app.config, "tr_extra_options", []))
+        suite_properties = suite.get("properties", {})
+        for prop_name, prop_value in suite_properties.items():
+            if (
+                prop_name in allowed_extras
+                and prop_name not in suite
+                and prop_value not in ["", None]
+            ):
+                self.extra_options[prop_name] = str(prop_value)
+
+        # Process tr_property_link_types: map suite-level property values
+        # to sphinx-needs links, consistent with TestCaseDirective behaviour.
+        tr_property_link_types = getattr(self.app.config, "tr_property_link_types", {})
+        for prop_name, link_field in tr_property_link_types.items():
+            prop_value = suite_properties.get(prop_name, "")
+            if prop_value:
+                link_ids = ";".join(
+                    id_val.strip() for id_val in prop_value.split(",") if id_val.strip()
+                )
+                if link_field == "links":
+                    existing = self.test_links
+                else:
+                    existing = self.extra_options.get(link_field, "")
+                if existing:
+                    merged = existing + ";" + link_ids
+                else:
+                    merged = link_ids
+                if link_field == "links":
+                    self.test_links = merged
+                else:
+                    self.extra_options[link_field] = merged
+
         main_section = []
         docname = self.state.document.settings.env.docname
         main_section += add_need(
